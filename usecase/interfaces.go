@@ -19,6 +19,5 @@ type (
 		RemovePerson(ctx context.Context, id uint64) error
 		QuerySinglePeople(ctx context.Context, id uint64, num int) ([]entity.Person, error)
 		Match(ctx context.Context, id1, id2 uint64) error
-		Print()
 	}
 )

@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"sync/atomic"
 
@@ -92,14 +91,6 @@ func (h *PersonHandler) AddPersonAndFindMatch(ctx context.Context, p entity.Pers
 		return nil, err
 	}
 	return h.QuerySinglePeople(ctx, p.ID, 1)
-}
-
-func (h *PersonHandler) Print() {
-	fmt.Println("boys:")
-	h.boys.Print()
-
-	fmt.Println("girls:")
-	h.girls.Print()
 }
 
 func (h *PersonHandler) Match(ctx context.Context, id1, id2 uint64) error {

@@ -41,14 +41,6 @@ func (rH *HttpHandler) addPersonAndFindMatchHandler(c *gin.Context) {
 	ctx.WithData(data).Response(http.StatusOK, "")
 }
 
-func (rH *HttpHandler) printHandler(c *gin.Context) {
-	ctx := cGin.NewContext(c)
-
-	rH.h.Print()
-
-	ctx.Response(http.StatusOK, "")
-}
-
 func (rH *HttpHandler) removePersonHandler(c *gin.Context) {
 	ctx := cGin.NewContext(c)
 

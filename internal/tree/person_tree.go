@@ -1,7 +1,6 @@
 package tree
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/emirpasic/gods/trees/redblacktree"
@@ -129,9 +128,4 @@ func (pt *PersonTree) FindByID(id uint64) (*entity.Person, bool) {
 
 	person, exist := pt.idMap[id]
 	return person, exist
-}
-
-func (pt *PersonTree) Print() {
-	fmt.Println(pt.tree)
-	fmt.Println(pt.tree.Values())
 }
