@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"github.com/ars0915/gogolook-exercise/repo"
+	"github.com/ars0915/matching-system/repo"
 )
 
 type AppHandler struct {

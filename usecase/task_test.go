@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gorm.io/gorm"
 
-	"github.com/ars0915/gogolook-exercise/entity"
-	mocks "github.com/ars0915/gogolook-exercise/mocks/repo"
-	"github.com/ars0915/gogolook-exercise/util/ctest"
+	"github.com/ars0915/matching-system/entity"
+	mocks "github.com/ars0915/matching-system/mocks/repo"
+	"github.com/ars0915/matching-system/util/ctest"
 )
 
 type taskTestSuite struct {

@@ -1,4 +1,4 @@
-module github.com/ars0915/gogolook-exercise
+module github.com/ars0915/matching-system
 
 go 1.21
 

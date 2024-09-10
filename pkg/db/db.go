@@ -5,7 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
-	"github.com/ars0915/gogolook-exercise/config"
+	"github.com/ars0915/matching-system/config"
 )
 
 func NewDB(config config.ConfENV) (*gorm.DB, error) {

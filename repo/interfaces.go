@@ -3,10 +3,10 @@ package repo
 import (
 	"context"
 
-	"github.com/ars0915/gogolook-exercise/entity"
+	"github.com/ars0915/matching-system/entity"
 )
 
-//go:generate mockgen -destination=../mocks/repo/app_repo.go -package=mocks github.com/ars0915/gogolook-exercise/repo App
+//go:generate mockgen -destination=../mocks/repo/app_repo.go -package=mocks github.com/ars0915/matching-system/repo App
 
 type (
 	App interface {

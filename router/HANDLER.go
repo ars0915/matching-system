@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/ars0915/gogolook-exercise/config"
-	"github.com/ars0915/gogolook-exercise/usecase"
+	"github.com/ars0915/matching-system/config"
+	"github.com/ars0915/matching-system/usecase"
 )
 
 type HttpHandler struct {
