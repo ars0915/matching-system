@@ -55,7 +55,7 @@ func (rH *HttpHandler) removePersonHandler(c *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		ctx.WithError(err).Response(http.StatusBadRequest, "Invaild id")
+		ctx.WithError(err).Response(http.StatusBadRequest, "Invalid id")
 		return
 	}
 
@@ -65,4 +65,30 @@ func (rH *HttpHandler) removePersonHandler(c *gin.Context) {
 	}
 
 	ctx.Response(http.StatusOK, "")
+}
+
+func (rH *HttpHandler) querySinglePeopleHandler(c *gin.Context) {
+	ctx := cGin.NewContext(c)
+
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		ctx.WithError(err).Response(http.StatusBadRequest, "Invalid id")
+		return
+	}
+
+	queryNumStr := ctx.Query("num")
+	queryNum, err := strconv.Atoi(queryNumStr)
+	if err != nil {
+		ctx.WithError(err).Response(http.StatusBadRequest, "Invalid query number")
+		return
+	}
+
+	data, err := rH.h.QuerySinglePeople(ctx, uint64(id), queryNum)
+	if err != nil {
+		ctx.WithError(err).Response(http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	ctx.WithData(data).Response(http.StatusOK, "")
 }
