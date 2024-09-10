@@ -90,12 +90,27 @@ func (pt *PersonTree) QueryByHeight(minHeight float64, maxHeight float64) []enti
 	var result []entity.Person
 	var ids []uint64
 
-	iter := pt.tree.Iterator()
-	for iter.Next() {
+	if pt.tree.Root == nil {
+		return nil
+	}
+
+	floorNode, found := pt.tree.Floor(minHeight)
+	if !found {
+		floorNode = pt.tree.Left()
+	}
+
+	iter := pt.tree.IteratorAt(floorNode)
+	for iter.Node() != nil {
 		height := iter.Key().(float64)
-		if height >= minHeight && height <= maxHeight {
-			ids = append(ids, iter.Value().([]uint64)...)
+		if height > maxHeight {
+			break
 		}
+		if height < minHeight {
+			iter.Next()
+			continue
+		}
+		ids = append(ids, iter.Value().([]uint64)...)
+		iter.Next()
 	}
 
 	for _, id := range ids {
