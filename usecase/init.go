@@ -5,8 +5,10 @@ import (
 )
 
 func InitHandler(boysTree, girlsTree *tree.PersonTree) Handler {
-
-	h := newHandler()
+	person := NewPersonHandler(boysTree, girlsTree)
+	h := newHandler(
+		WithPerson(person),
+	)
 
 	return h
 }

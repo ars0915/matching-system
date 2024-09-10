@@ -23,16 +23,18 @@ func newHandler(optFn ...NewHandlerOption) *AppHandler {
 type PersonHandler struct {
 	boys  *tree.PersonTree
 	girls *tree.PersonTree
+	id    *uint64
 }
 
 func NewPersonHandler(boysTree, girlsTree *tree.PersonTree) *PersonHandler {
 	return &PersonHandler{
 		boys:  boysTree,
 		girls: girlsTree,
+		id:    new(uint64),
 	}
 }
 
-func WithPerson(i PersonHandler) func(h *AppHandler) {
+func WithPerson(i *PersonHandler) func(h *AppHandler) {
 	return func(h *AppHandler) {
 		h.Person = i
 	}

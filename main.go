@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/ars0915/matching-system/config"
+	"github.com/ars0915/matching-system/internal/tree"
 	"github.com/ars0915/matching-system/router"
 	"github.com/ars0915/matching-system/usecase"
 	"github.com/ars0915/matching-system/util/log"
@@ -72,7 +73,10 @@ func init() {
 
 		log.SetLogLevel(config.Conf.Log.Level)
 
-		uHandler := usecase.InitHandler()
+		boysTree := tree.NewPersonTree()
+		girlsTree := tree.NewPersonTree()
+
+		uHandler := usecase.InitHandler(boysTree, girlsTree)
 
 		service := router.NewHandler(config.Conf, uHandler)
 
