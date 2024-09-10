@@ -135,7 +135,7 @@ func (h *PersonHandler) tryMatch(person1, person2 *entity.Person) bool {
 }
 
 func (h *PersonHandler) decrementWantedDate(person *entity.Person) bool {
-	return atomic.AddUint64(person.WantedDates, ^uint64(0)) > 0
+	return atomic.AddUint64(person.WantedDates, ^uint64(0)) >= 0
 }
 
 func (h *PersonHandler) removeIfExhausted(person *entity.Person) {

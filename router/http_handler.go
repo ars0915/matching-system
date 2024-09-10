@@ -17,5 +17,6 @@ func (rH HttpHandler) getRouter() (routes []appRouter) {
 		{http.MethodPost, "/addPersonAndFindMatch/", rH.addPersonAndFindMatchHandler},
 		{http.MethodDelete, "/removeSinglePerson/:id/", rH.removePersonHandler},
 		{http.MethodGet, "/querySinglePeople/:id/", rH.querySinglePeopleHandler},
+		{http.MethodPost, "/match/", rH.matchHandler},
 	}
 }

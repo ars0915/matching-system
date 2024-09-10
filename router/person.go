@@ -84,3 +84,25 @@ func (rH *HttpHandler) querySinglePeopleHandler(c *gin.Context) {
 
 	ctx.WithData(data).Response(http.StatusOK, "")
 }
+
+type matchBody struct {
+	Id1 uint64 `json:"id1" binding:"required"`
+	Id2 uint64 `json:"id2" binding:"required"`
+}
+
+func (rH *HttpHandler) matchHandler(c *gin.Context) {
+	ctx := cGin.NewContext(c)
+
+	var body matchBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		ctx.WithError(err).Response(http.StatusBadRequest, "Invalid Json")
+		return
+	}
+
+	if err := rH.h.Match(ctx, body.Id1, body.Id2); err != nil {
+		ctx.WithError(err).Response(http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	ctx.Response(http.StatusOK, "")
+}
