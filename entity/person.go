@@ -7,5 +7,5 @@ type Person struct {
 	Name        string
 	Height      float64
 	Gender      constant.Gender
-	WantedDates int64
+	WantedDates *uint64
 }

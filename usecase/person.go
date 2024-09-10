@@ -31,15 +31,15 @@ func (h *PersonHandler) AddPerson(p entity.Person) (entity.Person, error) {
 	return p, err
 }
 
-func (h *PersonHandler) findPerson(id uint64) (entity.Person, error) {
+func (h *PersonHandler) findPerson(id uint64) (*entity.Person, error) {
 	if p, exist := h.boys.FindByID(id); exist {
-		return *p, nil
+		return p, nil
 	}
 	if p, exist := h.girls.FindByID(id); exist {
-		return *p, nil
+		return p, nil
 	}
 
-	return entity.Person{}, ErrorPersonNotFound
+	return nil, ErrorPersonNotFound
 }
 
 func (h *PersonHandler) RemovePerson(ctx context.Context, id uint64) error {
@@ -100,4 +100,62 @@ func (h *PersonHandler) Print() {
 
 	fmt.Println("girls:")
 	h.girls.Print()
+}
+
+func (h *PersonHandler) Match(ctx context.Context, id1, id2 uint64) error {
+	person1, err := h.findPerson(id1)
+	if err != nil {
+		return err
+	}
+
+	person2, err := h.findPerson(id2)
+	if err != nil {
+		return err
+	}
+
+	if person1.Gender == person2.Gender {
+		return ErrorMatchSameGender
+	}
+
+	// Check height
+	if (person1.Gender == constant.GenderMale && person1.Height < person2.Height) ||
+		(person1.Gender == constant.GenderFemale && person1.Height > person2.Height) {
+		return ErrorHeightCheckFailed
+	}
+
+	if !h.tryMatch(person1, person2) {
+		return ErrorWantedDateLimit
+	}
+
+	return nil
+}
+
+func (h *PersonHandler) tryMatch(person1, person2 *entity.Person) bool {
+	// Atomically decrement wanted dates and check if either person has exhausted their dates
+	if !h.decrementWantedDate(person1) || !h.decrementWantedDate(person2) {
+		return false
+	}
+
+	// Remove from the system if any person's dates reach 0
+	h.removeIfExhausted(person1)
+	h.removeIfExhausted(person2)
+
+	return true
+}
+
+func (h *PersonHandler) decrementWantedDate(person *entity.Person) bool {
+	return atomic.AddUint64(person.WantedDates, ^uint64(0)) > 0
+}
+
+func (h *PersonHandler) removeIfExhausted(person *entity.Person) {
+	if atomic.LoadUint64(person.WantedDates) == 0 {
+		// Remove from the appropriate gender group
+		// Ignore the error because person has already been removed
+		switch person.Gender {
+		case constant.GenderMale:
+			_ = h.boys.RemovePerson(person.ID)
+		case constant.GenderFemale:
+			_ = h.girls.RemovePerson(person.ID)
+		}
+	}
 }

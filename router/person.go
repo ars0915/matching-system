@@ -15,7 +15,7 @@ type addPersonBody struct {
 	Name       string  `json:"name" binding:"required"`
 	Height     float64 `json:"height" binding:"required"`
 	Gender     string  `json:"gender" binding:"required"`
-	WantedDate int64   `json:"wantedDate" binding:"required"`
+	WantedDate *uint64 `json:"wantedDate" binding:"required"`
 }
 
 func (rH *HttpHandler) addPersonAndFindMatchHandler(c *gin.Context) {

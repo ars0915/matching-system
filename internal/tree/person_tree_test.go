@@ -9,46 +9,65 @@ import (
 
 	"github.com/emirpasic/gods/trees/redblacktree"
 	"github.com/emirpasic/gods/utils"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/ars0915/matching-system/entity"
+	"github.com/ars0915/matching-system/util/cTypes"
 )
 
-func TestPersonTree_QueryByHeight(t *testing.T) {
+type personTreeTestSuite struct {
+	suite.Suite
+
+	pt *PersonTree
+}
+
+func Test_personTreeTestSuite(t *testing.T) {
+	suite.Run(t, &personTreeTestSuite{})
+}
+
+func (s *personTreeTestSuite) SetupTest() {
 	idMap := map[uint64]*entity.Person{
 		1: {
-			ID:     1,
-			Name:   "1",
-			Height: 150,
+			ID:          1,
+			Name:        "1",
+			Height:      150,
+			WantedDates: cTypes.Uint64(1),
 		},
 		2: {
-			ID:     2,
-			Name:   "2",
-			Height: 155,
+			ID:          2,
+			Name:        "2",
+			Height:      155,
+			WantedDates: cTypes.Uint64(2),
 		},
 		3: {
-			ID:     3,
-			Name:   "3",
-			Height: 155,
+			ID:          3,
+			Name:        "3",
+			Height:      155,
+			WantedDates: cTypes.Uint64(1),
 		},
 		4: {
-			ID:     4,
-			Name:   "4",
-			Height: 160,
+			ID:          4,
+			Name:        "4",
+			Height:      160,
+			WantedDates: cTypes.Uint64(1),
 		},
 		5: {
-			ID:     5,
-			Name:   "5",
-			Height: 170,
+			ID:          5,
+			Name:        "5",
+			Height:      170,
+			WantedDates: cTypes.Uint64(1),
 		},
 	}
 
-	pt := &PersonTree{
+	s.pt = &PersonTree{
 		tree:  redblacktree.NewWith(utils.Float64Comparator),
 		idMap: idMap,
 		mu:    sync.RWMutex{},
 	}
-	insertPersonToTree(pt, idMap)
+	insertPersonToTree(s.pt, idMap)
+}
 
+func (s *personTreeTestSuite) Test_QueryByHeight() {
 	type args struct {
 		minHeight float64
 		maxHeight float64
@@ -101,9 +120,9 @@ func TestPersonTree_QueryByHeight(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		s.T().Run(tt.name, func(t *testing.T) {
 
-			got := pt.QueryByHeight(tt.args.minHeight, tt.args.maxHeight)
+			got := s.pt.QueryByHeight(tt.args.minHeight, tt.args.maxHeight)
 			var gotIDs []uint64
 			for _, person := range got {
 				gotIDs = append(gotIDs, person.ID)
