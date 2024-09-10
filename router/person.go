@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -44,6 +45,24 @@ func (rH *HttpHandler) printHandler(c *gin.Context) {
 	ctx := cGin.NewContext(c)
 
 	rH.h.Print()
+
+	ctx.Response(http.StatusOK, "")
+}
+
+func (rH *HttpHandler) removePersonHandler(c *gin.Context) {
+	ctx := cGin.NewContext(c)
+
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		ctx.WithError(err).Response(http.StatusBadRequest, "Invaild id")
+		return
+	}
+
+	if err = rH.h.RemovePerson(ctx, uint64(id)); err != nil {
+		ctx.WithError(err).Response(http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 
 	ctx.Response(http.StatusOK, "")
 }

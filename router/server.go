@@ -88,7 +88,7 @@ func (rH Handler) RunServer(ctx context.Context) (err error) {
 	}
 }
 
-func (h HttpHandler) routerEngine() *gin.Engine {
+func (rH HttpHandler) routerEngine() *gin.Engine {
 	// set server mode
 	gin.SetMode(config.Conf.Core.Mode)
 
@@ -112,7 +112,7 @@ func (h HttpHandler) routerEngine() *gin.Engine {
 	})
 
 	// app
-	routers := h.getRouter()
+	routers := rH.getRouter()
 	for i := range routers {
 		r.Handle(
 			routers[i].method,

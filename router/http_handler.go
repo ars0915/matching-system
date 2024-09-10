@@ -12,9 +12,10 @@ type appRouter struct {
 	worker   gin.HandlerFunc
 }
 
-func (h HttpHandler) getRouter() (routes []appRouter) {
+func (rH HttpHandler) getRouter() (routes []appRouter) {
 	return []appRouter{
-		{http.MethodPost, "/addPersonAndFindMatch/", h.addPersonAndFindMatchHandler},
-		{http.MethodGet, "/print/", h.printHandler},
+		{http.MethodPost, "/addPersonAndFindMatch/", rH.addPersonAndFindMatchHandler},
+		{http.MethodGet, "/print/", rH.printHandler},
+		{http.MethodDelete, "/removeSinglePerson/:id/", rH.removePersonHandler},
 	}
 }

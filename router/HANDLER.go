@@ -17,8 +17,8 @@ func newHttpHandler(conf config.ConfENV, h usecase.Handler) *HttpHandler {
 	}
 }
 
-func (h *HttpHandler) Usecase() usecase.Handler {
-	return h.h
+func (rH *HttpHandler) Usecase() usecase.Handler {
+	return rH.h
 }
 
 type Handler struct {
