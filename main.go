@@ -10,8 +10,6 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/ars0915/matching-system/config"
-	"github.com/ars0915/matching-system/pkg/db"
-	repoDB "github.com/ars0915/matching-system/repo/db"
 	"github.com/ars0915/matching-system/router"
 	"github.com/ars0915/matching-system/usecase"
 	"github.com/ars0915/matching-system/util/log"
@@ -74,16 +72,7 @@ func init() {
 
 		log.SetLogLevel(config.Conf.Log.Level)
 
-		// injection
-		pkgDB, err := db.NewDB(config.Conf)
-		if err != nil {
-			return err
-		}
-
-		db := repoDB.New(pkgDB)
-		db.Migrate()
-
-		uHandler := usecase.InitHandler(db)
+		uHandler := usecase.InitHandler()
 
 		service := router.NewHandler(config.Conf, uHandler)
 

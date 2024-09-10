@@ -1,13 +1,12 @@
 package usecase
 
-import "github.com/ars0915/matching-system/repo"
+import (
+	"github.com/ars0915/matching-system/internal/tree"
+)
 
-func InitHandler(db repo.App) Handler {
-	task := NewTaskHandler(db)
+func InitHandler(boysTree, girlsTree *tree.PersonTree) Handler {
 
-	h := newHandler(
-		WithTask(task),
-	)
+	h := newHandler()
 
 	return h
 }

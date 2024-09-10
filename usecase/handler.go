@@ -1,11 +1,11 @@
 package usecase
 
 import (
-	"github.com/ars0915/matching-system/repo"
+	"github.com/ars0915/matching-system/internal/tree"
 )
 
 type AppHandler struct {
-	Task
+	Person
 }
 
 type NewHandlerOption func(*AppHandler)
@@ -20,16 +20,20 @@ func newHandler(optFn ...NewHandlerOption) *AppHandler {
 	return h
 }
 
-type TaskHandler struct {
-	db repo.App
+type PersonHandler struct {
+	boys  *tree.PersonTree
+	girls *tree.PersonTree
 }
 
-func NewTaskHandler(db repo.App) *TaskHandler {
-	return &TaskHandler{
-		db: db,
+func NewPersonHandler(boysTree, girlsTree *tree.PersonTree) *PersonHandler {
+	return &PersonHandler{
+		boys:  boysTree,
+		girls: girlsTree,
 	}
 }
 
-func WithTask(i Task) func(h *AppHandler) {
-	return func(h *AppHandler) { h.Task = i }
+func WithPerson(i PersonHandler) func(h *AppHandler) {
+	return func(h *AppHandler) {
+		h.Person = i
+	}
 }

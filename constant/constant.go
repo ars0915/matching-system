@@ -1,6 +1,11 @@
 package constant
 
+type Gender string
+
 const (
-	ServiceName        = "go-template"
+	ServiceName        = "matching-system"
 	ResponseCodePrefix = 1
+
+	GenderMale   Gender = "male"
+	GenderFemale Gender = "female"
 )

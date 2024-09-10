@@ -117,7 +117,6 @@ func (h HttpHandler) routerEngine() *gin.Engine {
 		r.Handle(
 			routers[i].method,
 			routers[i].endpoint,
-			resourceCheck(h).GinFunc(),
 			routers[i].worker,
 		)
 	}
