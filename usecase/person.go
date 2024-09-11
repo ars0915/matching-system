@@ -135,7 +135,15 @@ func (h *PersonHandler) tryMatch(person1, person2 *entity.Person) bool {
 }
 
 func (h *PersonHandler) decrementWantedDate(person *entity.Person) bool {
-	return atomic.AddUint64(person.WantedDates, ^uint64(0)) >= 0
+	current := atomic.LoadUint64(person.WantedDates)
+	if current == 0 {
+		return false
+	}
+
+	if atomic.CompareAndSwapUint64(person.WantedDates, current, current-1) {
+		return true
+	}
+	return false
 }
 
 func (h *PersonHandler) removeIfExhausted(person *entity.Person) {

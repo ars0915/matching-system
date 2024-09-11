@@ -40,6 +40,18 @@ func (s *personTestSuite) TearDownTest(t *testing.T) {
 	defer s.ctrl.Finish()
 }
 
+func (s *personTestSuite) initPeople(people []entity.Person) {
+	for _, person := range people {
+		if person.Gender == constant.GenderMale {
+			s.boys.EXPECT().AddPerson(gomock.Any()).Return(nil)
+		} else {
+			s.girls.EXPECT().AddPerson(gomock.Any()).Return(nil)
+		}
+		_, err := s.h.AddPerson(person)
+		assert.Nil(s.T(), err)
+	}
+}
+
 func (s *personTestSuite) Test_AddPerson() {
 	person := entity.Person{
 		ID:          1,
@@ -106,15 +118,7 @@ func (s *personTestSuite) Test_QuerySinglePeople() {
 			WantedDates: cTypes.Uint64(2),
 		},
 	}
-	for _, person := range people {
-		if person.Gender == constant.GenderMale {
-			s.boys.EXPECT().AddPerson(gomock.Any()).Return(nil)
-		} else {
-			s.girls.EXPECT().AddPerson(gomock.Any()).Return(nil)
-		}
-		_, err := s.h.AddPerson(person)
-		assert.Nil(s.T(), err)
-	}
+	s.initPeople(people)
 
 	targetPerson := people[3]
 	s.boys.EXPECT().FindByID(targetPerson.ID).Return(nil, false)
@@ -124,4 +128,84 @@ func (s *personTestSuite) Test_QuerySinglePeople() {
 	gotPeople, err := s.h.QuerySinglePeople(context.Background(), targetPerson.ID, 2)
 	assert.Nil(s.T(), err)
 	assert.Equal(s.T(), 2, len(gotPeople))
+}
+
+func (s *personTestSuite) Test_MatchSameGender() {
+	people := []entity.Person{
+		{
+			ID:          1,
+			Name:        "a",
+			Height:      151,
+			Gender:      "male",
+			WantedDates: cTypes.Uint64(2),
+		},
+		{
+			ID:          2,
+			Name:        "b",
+			Height:      152,
+			Gender:      "male",
+			WantedDates: cTypes.Uint64(2),
+		},
+	}
+	s.initPeople(people)
+
+	s.boys.EXPECT().FindByID(uint64(1)).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(uint64(2)).Return(&people[1], true)
+
+	err := s.h.Match(context.Background(), 1, 2)
+	assert.Equal(s.T(), ErrorMatchSameGender, err)
+}
+
+func (s *personTestSuite) Test_MatchHeightCheckFail() {
+	people := []entity.Person{
+		{
+			ID:          1,
+			Name:        "a",
+			Height:      150,
+			Gender:      "male",
+			WantedDates: cTypes.Uint64(2),
+		},
+		{
+			ID:          2,
+			Name:        "b",
+			Height:      152,
+			Gender:      "female",
+			WantedDates: cTypes.Uint64(2),
+		},
+	}
+	s.initPeople(people)
+
+	s.boys.EXPECT().FindByID(uint64(1)).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(uint64(2)).Return(nil, false)
+	s.girls.EXPECT().FindByID(uint64(2)).Return(&people[1], true)
+
+	err := s.h.Match(context.Background(), 1, 2)
+	assert.Equal(s.T(), ErrorHeightCheckFailed, err)
+}
+
+func (s *personTestSuite) Test_MatchDecrementWantedDatesFail() {
+	people := []entity.Person{
+		{
+			ID:          1,
+			Name:        "a",
+			Height:      170,
+			Gender:      "male",
+			WantedDates: cTypes.Uint64(0),
+		},
+		{
+			ID:          2,
+			Name:        "b",
+			Height:      152,
+			Gender:      "female",
+			WantedDates: cTypes.Uint64(2),
+		},
+	}
+	s.initPeople(people)
+
+	s.boys.EXPECT().FindByID(uint64(1)).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(uint64(2)).Return(nil, false)
+	s.girls.EXPECT().FindByID(uint64(2)).Return(&people[1], true)
+
+	err := s.h.Match(context.Background(), 1, 2)
+	assert.Equal(s.T(), ErrorWantedDateLimit, err)
 }
