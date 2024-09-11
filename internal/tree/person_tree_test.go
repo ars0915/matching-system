@@ -10,6 +10,7 @@ import (
 
 	"github.com/emirpasic/gods/trees/redblacktree"
 	"github.com/emirpasic/gods/utils"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
@@ -181,12 +182,12 @@ func (s *personTreeTestSuite) Test_AddPerson() {
 			if err != nil {
 				return
 			}
-			s.checkPersonExist(tt.p)
+			s.checkPersonAdded(tt.p)
 		})
 	}
 }
 
-func (s *personTreeTestSuite) checkPersonExist(p entity.Person) {
+func (s *personTreeTestSuite) checkPersonAdded(p entity.Person) {
 	s.pt.mu.RLock()
 	defer s.pt.mu.RUnlock()
 
@@ -200,4 +201,67 @@ func (s *personTreeTestSuite) checkPersonExist(p entity.Person) {
 	assert.True(s.T(), exist, "height should be found in tree")
 	gotIDs := value.([]uint64)
 	assert.True(s.T(), slices.Contains(gotIDs, p.ID), "person id should be found in node")
+}
+
+func (s *personTreeTestSuite) Test_RemovePerson() {
+	tests := []struct {
+		name           string
+		id             uint64
+		wantErr        error
+		wantRemoveNode bool
+	}{
+		{
+			"Remove person",
+			2,
+			nil,
+			false,
+		},
+		{
+			"Remove person with node",
+			3,
+			nil,
+			true,
+		},
+		{
+			"Person not found",
+			3,
+			ErrorPersonNotFound,
+			false,
+		},
+	}
+
+	for _, tt := range tests {
+		s.T().Run(tt.name, func(t *testing.T) {
+			person, exist := s.pt.FindByID(tt.id)
+			if !errors.Is(tt.wantErr, ErrorPersonNotFound) {
+				assert.True(s.T(), exist, "init person should be found in idMap")
+			}
+
+			err := s.pt.RemovePerson(tt.id)
+			assert.Equal(t, tt.wantErr, err)
+			if err != nil {
+				return
+			}
+
+			s.checkPersonRemoved(*person, tt.wantRemoveNode)
+		})
+	}
+}
+
+func (s *personTreeTestSuite) checkPersonRemoved(p entity.Person, wantRemoveNode bool) {
+	s.pt.mu.RLock()
+	defer s.pt.mu.RUnlock()
+
+	// check in idMap
+	_, exist := s.pt.idMap[p.ID]
+	assert.False(s.T(), exist, "person should not be found in idMap")
+
+	value, exist := s.pt.tree.Get(p.Height)
+	if wantRemoveNode {
+		assert.False(s.T(), exist, "node should not be found in tree")
+		return
+	}
+
+	gotIDs := value.([]uint64)
+	assert.False(s.T(), slices.Contains(gotIDs, p.ID), "person id should not be found in node")
 }
