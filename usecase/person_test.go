@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"math"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -76,14 +78,12 @@ func (s *personTestSuite) Test_RemovePerson() {
 		Gender:      "male",
 		WantedDates: cTypes.Uint64(2),
 	}
-	s.boys.EXPECT().AddPerson(ctest.DiffWrapper(&person)).Return(nil)
-	person, err := s.h.AddPerson(person)
-	assert.Nil(s.T(), err)
+	s.initPeople([]entity.Person{person})
 
 	s.boys.EXPECT().FindByID(person.ID).Return(&person, true)
 	s.boys.EXPECT().RemovePerson(person.ID).Return(nil)
 
-	err = s.h.RemovePerson(context.Background(), person.ID)
+	err := s.h.RemovePerson(context.Background(), person.ID)
 	assert.Nil(s.T(), err)
 }
 
@@ -149,8 +149,8 @@ func (s *personTestSuite) Test_MatchSameGender() {
 	}
 	s.initPeople(people)
 
-	s.boys.EXPECT().FindByID(uint64(1)).Return(&people[0], true)
-	s.boys.EXPECT().FindByID(uint64(2)).Return(&people[1], true)
+	s.boys.EXPECT().FindByID(people[0].ID).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(people[1].ID).Return(&people[1], true)
 
 	err := s.h.Match(context.Background(), 1, 2)
 	assert.Equal(s.T(), ErrorMatchSameGender, err)
@@ -175,9 +175,9 @@ func (s *personTestSuite) Test_MatchHeightCheckFail() {
 	}
 	s.initPeople(people)
 
-	s.boys.EXPECT().FindByID(uint64(1)).Return(&people[0], true)
-	s.boys.EXPECT().FindByID(uint64(2)).Return(nil, false)
-	s.girls.EXPECT().FindByID(uint64(2)).Return(&people[1], true)
+	s.boys.EXPECT().FindByID(people[0].ID).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(people[1].ID).Return(nil, false)
+	s.girls.EXPECT().FindByID(people[1].ID).Return(&people[1], true)
 
 	err := s.h.Match(context.Background(), 1, 2)
 	assert.Equal(s.T(), ErrorHeightCheckFailed, err)
@@ -202,10 +202,90 @@ func (s *personTestSuite) Test_MatchDecrementWantedDatesFail() {
 	}
 	s.initPeople(people)
 
-	s.boys.EXPECT().FindByID(uint64(1)).Return(&people[0], true)
-	s.boys.EXPECT().FindByID(uint64(2)).Return(nil, false)
-	s.girls.EXPECT().FindByID(uint64(2)).Return(&people[1], true)
+	s.boys.EXPECT().FindByID(people[0].ID).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(people[1].ID).Return(nil, false)
+	s.girls.EXPECT().FindByID(people[1].ID).Return(&people[1], true)
 
 	err := s.h.Match(context.Background(), 1, 2)
 	assert.Equal(s.T(), ErrorWantedDateLimit, err)
+}
+
+func (s *personTestSuite) Test_MatchSuccess() {
+	people := []entity.Person{
+		{
+			ID:          1,
+			Name:        "a",
+			Height:      170,
+			Gender:      "male",
+			WantedDates: cTypes.Uint64(2),
+		},
+		{
+			ID:          2,
+			Name:        "b",
+			Height:      152,
+			Gender:      "female",
+			WantedDates: cTypes.Uint64(2),
+		},
+	}
+	s.initPeople(people)
+
+	s.boys.EXPECT().FindByID(people[0].ID).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(people[1].ID).Return(nil, false)
+	s.girls.EXPECT().FindByID(people[1].ID).Return(&people[1], true)
+
+	err := s.h.Match(context.Background(), 1, 2)
+	assert.Nil(s.T(), err)
+}
+
+func (s *personTestSuite) Test_MatchWithRemovePerson() {
+	people := []entity.Person{
+		{
+			ID:          1,
+			Name:        "a",
+			Height:      170,
+			Gender:      "male",
+			WantedDates: cTypes.Uint64(1),
+		},
+		{
+			ID:          2,
+			Name:        "b",
+			Height:      152,
+			Gender:      "female",
+			WantedDates: cTypes.Uint64(2),
+		},
+	}
+	s.initPeople(people)
+
+	s.boys.EXPECT().FindByID(people[0].ID).Return(&people[0], true)
+	s.boys.EXPECT().FindByID(people[1].ID).Return(nil, false)
+	s.girls.EXPECT().FindByID(people[1].ID).Return(&people[1], true)
+
+	s.boys.EXPECT().RemovePerson(people[0].ID).Return(nil)
+
+	err := s.h.Match(context.Background(), 1, 2)
+	assert.Nil(s.T(), err)
+}
+
+func (s *personTestSuite) Test_Concurrent_DecrementWantedDate() {
+	person := entity.Person{
+		ID:          1,
+		Name:        "a",
+		Height:      170,
+		Gender:      "male",
+		WantedDates: cTypes.Uint64(5),
+	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			s.h.decrementWantedDate(&person)
+		}()
+	}
+
+	wg.Wait()
+
+	actualWantedDates := atomic.LoadUint64(person.WantedDates)
+	assert.Equal(s.T(), uint64(3), actualWantedDates)
 }
