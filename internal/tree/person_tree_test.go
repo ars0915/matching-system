@@ -3,12 +3,14 @@ package tree
 import (
 	"math"
 	"reflect"
+	"slices"
 	"sort"
 	"sync"
 	"testing"
 
 	"github.com/emirpasic/gods/trees/redblacktree"
 	"github.com/emirpasic/gods/utils"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/ars0915/matching-system/entity"
@@ -65,6 +67,17 @@ func (s *personTreeTestSuite) SetupTest() {
 		mu:    sync.RWMutex{},
 	}
 	insertPersonToTree(s.pt, idMap)
+}
+
+func insertPersonToTree(pt *PersonTree, idMap map[uint64]*entity.Person) {
+	for _, p := range idMap {
+		if value, found := pt.tree.Get(p.Height); found {
+			people := value.([]uint64)
+			pt.tree.Put(p.Height, append(people, p.ID))
+			continue
+		}
+		pt.tree.Put(p.Height, []uint64{p.ID})
+	}
 }
 
 func (s *personTreeTestSuite) Test_QueryByHeight() {
@@ -136,13 +149,55 @@ func (s *personTreeTestSuite) Test_QueryByHeight() {
 	}
 }
 
-func insertPersonToTree(pt *PersonTree, idMap map[uint64]*entity.Person) {
-	for _, p := range idMap {
-		if value, found := pt.tree.Get(p.Height); found {
-			people := value.([]uint64)
-			pt.tree.Put(p.Height, append(people, p.ID))
-			continue
-		}
-		pt.tree.Put(p.Height, []uint64{p.ID})
+func (s *personTreeTestSuite) Test_AddPerson() {
+	person := entity.Person{
+		ID:          99999,
+		Name:        "New Person",
+		Height:      999,
+		Gender:      "male",
+		WantedDates: cTypes.Uint64(3),
 	}
+	tests := []struct {
+		name    string
+		p       entity.Person
+		wantErr error
+	}{
+		{
+			"Success",
+			person,
+			nil,
+		},
+		{
+			"Exist",
+			person,
+			ErrorPersonExist,
+		},
+	}
+
+	for _, tt := range tests {
+		s.T().Run(tt.name, func(t *testing.T) {
+			err := s.pt.AddPerson(&tt.p)
+			assert.Equal(t, tt.wantErr, err)
+			if err != nil {
+				return
+			}
+			s.checkPersonExist(tt.p)
+		})
+	}
+}
+
+func (s *personTreeTestSuite) checkPersonExist(p entity.Person) {
+	s.pt.mu.RLock()
+	defer s.pt.mu.RUnlock()
+
+	// check in idMap
+	gotPerson, exist := s.pt.idMap[p.ID]
+	assert.True(s.T(), exist, "person should be found in idMap")
+	assert.Truef(s.T(), reflect.DeepEqual(*gotPerson, p), "person different, got = %v, want = %v", *gotPerson, p)
+
+	// check in tree
+	value, exist := s.pt.tree.Get(p.Height)
+	assert.True(s.T(), exist, "height should be found in tree")
+	gotIDs := value.([]uint64)
+	assert.True(s.T(), slices.Contains(gotIDs, p.ID), "person id should be found in node")
 }
