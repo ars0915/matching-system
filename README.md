@@ -91,9 +91,9 @@ $ make tests
 #### Description:
 此 API 用於添加一個新用戶並嘗試找到匹配對象。
 #### Request:
-- Method: POST  
-- Content-Type: application/json  
-- Body:
+- **Method:** `POST`  
+- **Content-Type:** `application/json` 
+- **Body:**
     ```json
     {
         "name": "3",        // 名字 (string)
@@ -103,9 +103,9 @@ $ make tests
     }
     ```
 #### Response:
-- Success:
-  - Status Code: 200 OK
-    - Body:
+- **Success:**
+  - **Status Code:** 200 OK
+  - **Body:**
     ```json
     {
         "meta": {
@@ -122,15 +122,8 @@ $ make tests
             }
         ]
     }
-    ```     
-- Error:
-- Status Code: 400 Bad Request
-Body:
-json
-複製程式碼
-{
-"error": "Error message"
-}
+    ```
+#### Example:
 ```shell
 curl 'http://localhost:8080/addPersonAndFindMatch/' \
 --header 'Content-Type: application/json' \
@@ -143,14 +136,133 @@ curl 'http://localhost:8080/addPersonAndFindMatch/' \
 ```
 
 ### RemoveSinglePerson
+#### Endpoint:
+`DELETE /removeSinglePerson/{userID}/`
+
+#### Description:
+此 API 用於刪除指定 ID 的單個用戶。
+
+#### Request:
+- **Method:** `DELETE`
+- **Path Parameter:**
+    - `userID` (uint64): 要刪除的用戶的 ID
+
+#### Response:
+- **Success:**
+    - **Status Code:** `200 OK`
+    - **Body:**
+      ```json
+      {
+          "meta": {
+              "code": 1200,
+              "message": ""
+          },
+          "data": null
+      }
+      ```
+
+- **Error:**  
+  - **Status Code:** `404 Not Found`  
+  - **Body:**  
+    ```json
+        {
+          "meta": {
+            "code": 1001,
+            "message": "Person not found"
+          },
+          "data": null
+        }
+    ```
+    
+#### Example:
 ```shell
-curl --request DELETE 'http://localhost:8080/removeSinglePerson/{userID}/'
+curl --request DELETE 'http://localhost:8080/removeSinglePerson/1/'
 ```
+
 ### QuerySinglePeople
+#### Endpoint:
+`GET /querySinglePeople/{id}/?num={queryNumber}`
+#### Description:
+此 API 根據指定的用戶 ID 查找該用戶希望匹配的對象。
+#### Request:
+- **Method:** `GET`
+- **Path Parameter:**
+    - `id` (uint64): 用戶的 ID
+- **Query Parameters:**
+    - `num` (int): 希望查找的匹配人數
+
+### **Response:**
+- **Success:**
+    - **Status Code:** `200 OK`
+    - **Body:**
+    ```json
+    {
+      "meta": {
+        "code": 1200,
+        "message": ""
+      },
+     "data": [
+        {
+          "ID": 6,
+          "Name": "B",
+          "Height": 170,
+          "Gender": "male",
+          "WantedDates": 1
+        }
+      ]
+  }
+    ```
+
+- **Error:**
+    - **Status Code:** `404 Not Found`
+    - **Body:**
+      ```json
+          {
+            "meta": {
+              "code": 1001,
+              "message": "Person not found"
+            },
+            "data": null
+          }
+      ```
+      
+#### Example:
 ```shell
-curl 'http://localhost:8080/querySinglePeople/{userID}/?num={queryNumber}'
+curl 'http://localhost:8080/querySinglePeople/1/?num=5'
 ```
+
 ### Match
+#### Endpoint:
+`POST /match/`
+
+#### Description:
+此 API 用於進行兩個用戶的匹配操作。
+
+#### Request:
+- **Method:** `POST`
+- **Content-Type:** `application/json`
+- **Body:**
+    ```json
+    {
+        "id1": 1, // 用戶1的 ID (uint64)
+        "id2": 3  // 用戶2的 ID (uint64)
+    }
+    ```
+  
+#### Response:
+- **Success:**
+    - **Status Code:** `200 OK`
+
+- **Error:**
+    - **Status Code:** `400 Bad Request`
+    - **Body:**
+      ```json
+      {
+          "error": "Error message"
+      }
+      ```
+
+#### Example:
 ```shell
 curl 'http://localhost:8080/match/' \
 --header 'Content-Type: application/json' \
