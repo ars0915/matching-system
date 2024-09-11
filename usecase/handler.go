@@ -21,12 +21,12 @@ func newHandler(optFn ...NewHandlerOption) *AppHandler {
 }
 
 type PersonHandler struct {
-	boys  *tree.PersonTree
-	girls *tree.PersonTree
+	boys  tree.Tree
+	girls tree.Tree
 	id    *uint64
 }
 
-func NewPersonHandler(boysTree, girlsTree *tree.PersonTree) *PersonHandler {
+func NewPersonHandler(boysTree, girlsTree tree.Tree) *PersonHandler {
 	return &PersonHandler{
 		boys:  boysTree,
 		girls: girlsTree,
